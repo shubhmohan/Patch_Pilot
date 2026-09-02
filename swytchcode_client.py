@@ -63,7 +63,8 @@ def list_runs(owner: str, repo: str, explain: bool = False):
     )
     if explain:
         return []
-    return result.get("workflow_runs") or result.get("data") or result
+    # Confirmed shape: {"data": {"total_count": N, "workflow_runs": [...]}, "request": {...}, "status_code": 200}
+    return result.get("data", {}).get("workflow_runs", [])
 
 
 def get_run_logs(owner: str, repo: str, run_id: int) -> str:
@@ -91,7 +92,7 @@ def get_run_logs(owner: str, repo: str, run_id: int) -> str:
 
 
 def file_issue(owner: str, repo: str, title: str, body: str, labels: list, idempotency_key: str) -> dict:
-    return swytchcode_exec(
+    result = swytchcode_exec(
         "github.issue.create",
         inputs={"owner": owner, "repo": repo},
         body={
@@ -101,11 +102,14 @@ def file_issue(owner: str, repo: str, title: str, body: str, labels: list, idemp
             "idempotency_key": idempotency_key,
         },
     )
+    # Same wrapper shape as list_runs: {"data": {...actual issue...}, "request": ..., "status_code": ...}
+    return result.get("data", result)
 
 
 def comment_on_issue(owner: str, repo: str, issue_number: int, body: str) -> dict:
-    return swytchcode_exec(
+    result = swytchcode_exec(
         "github.issue.comments.create",
         inputs={"owner": owner, "repo": repo, "issue_number": issue_number},
         body={"body": body},
     )
+    return result.get("data", result)
