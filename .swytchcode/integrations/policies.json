@@ -1,0 +1,84 @@
+{
+  "defaults": {
+    "on_violation": "fail",
+    "evaluation": "pre_execution"
+  },
+  "policies": [
+    {
+      "id": "5766c8561d86",
+      "target": [
+        "github.repo.delete",
+        "github.repo.delete1"
+      ],
+      "when": {
+        "field": "owner",
+        "operator": "exists"
+      },
+      "action": {
+        "type": "POLICY_BLOCKED",
+        "message": "PatchPilot must never delete a repository."
+      }
+    },
+    {
+      "id": "97bc354d6f9e",
+      "target": [
+        "github.merge.create",
+        "github.pull.merge.update",
+        "github.pull.updateBranch.update"
+      ],
+      "when": {
+        "field": "owner",
+        "operator": "exists"
+      },
+      "action": {
+        "type": "POLICY_BLOCKED",
+        "message": "PatchPilot only files issues and comments — merging is not permitted."
+      }
+    },
+    {
+      "id": "9b7c3f36c765",
+      "target": [
+        "github.git.refs.update",
+        "github.git.refs.delete"
+      ],
+      "when": {
+        "field": "owner",
+        "operator": "exists"
+      },
+      "action": {
+        "type": "POLICY_BLOCKED",
+        "message": "PatchPilot must never modify or delete git refs."
+      }
+    },
+    {
+      "id": "a302e7067d17",
+      "target": [
+        "github.branche.protection.update",
+        "github.branche.protection.delete"
+      ],
+      "when": {
+        "field": "owner",
+        "operator": "exists"
+      },
+      "action": {
+        "type": "POLICY_BLOCKED",
+        "message": "PatchPilot must never change branch protection rules."
+      }
+    },
+    {
+      "id": "1cea3b31a164",
+      "target": [
+        "github.repo.update",
+        "github.repo.update1"
+      ],
+      "when": {
+        "field": "owner",
+        "operator": "exists"
+      },
+      "action": {
+        "type": "POLICY_BLOCKED",
+        "message": "PatchPilot must never change repository settings."
+      }
+    }
+  ]
+}
