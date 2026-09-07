@@ -1,7 +1,6 @@
 <div align="center">
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0F2040,50:0D9488,100:F59E0B&height=200&section=header&text=Patch%20Pilot&fontSize=36&fontColor=ffffff&fontAlignY=38&desc=GitHub%20CI%20Automation%20&descAlignY=58&animation=fadeIn" width="100%"/>
 
-# 🚀 PatchPilot
 
 ### Your AI co-pilot for CI failures — diagnosed and filed before you even open the logs.
 
@@ -221,7 +220,7 @@ Filed issue: https://github.com/shubhmohan/Patch_Pilot/issues/1
 
 <div align="center">
 
-**Built with 🤖 + ☕ by [@shubhmohan](https://github.com/shubhmohan)**
+**Built by [@shubhmohan](https://github.com/shubhmohan)**
 
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/shubhmohan)
 
