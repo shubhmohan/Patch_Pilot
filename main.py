@@ -1,4 +1,3 @@
-import hashlib
 import os
 
 from dotenv import load_dotenv
@@ -6,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()  # must run BEFORE importing classify, which reads env vars at import time
 
 from classify import classify_failure
-from swytchcode_client import comment_on_issue, file_issue, get_run_logs, list_runs
+from swytchcode_client import comment_on_issue, file_issue, find_existing_issue, get_run_logs, list_runs
 
 OWNER = os.environ.get("GITHUB_OWNER")
 REPO = os.environ.get("GITHUB_REPO")
@@ -28,18 +27,20 @@ def main():
         name = run.get("name", "unnamed workflow")
         print(f"\nTriaging run #{run_id} ({name})...")
 
+        # Idempotency check: has PatchPilot already filed an issue for this
+        # exact run? If so, skip instead of creating a duplicate. This is
+        # what actually protects against re-runs/retries, not a fake key.
+        existing = find_existing_issue(OWNER, REPO, run_id)
+        if existing:
+            print(f"  Already triaged — skipping. See {existing.get('html_url', existing)}")
+            continue
+
         log_text = get_run_logs(OWNER, REPO, run_id)
         if not log_text:
             print("  (no text logs found in this run's zip, skipping)")
             continue
         analysis = classify_failure(log_text)
         print("Classification:", analysis["classification"])
-
-        # Deterministic idempotency key: same run + same commit never files
-        # twice, even if this script runs again on retry or re-trigger.
-        idempotency_key = hashlib.sha256(
-            f"{run_id}-{run.get('head_sha', '')}".encode()
-        ).hexdigest()
 
         issue = file_issue(
             OWNER,
@@ -51,7 +52,7 @@ def main():
                 f"{run.get('html_url', '')}"
             ),
             labels=["ci-triage", analysis["classification"].lower()],
-            idempotency_key=idempotency_key,
+            run_id=run_id,
         )
 
         print("Filed issue:", issue.get("html_url", issue))

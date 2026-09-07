@@ -91,15 +91,41 @@ def get_run_logs(owner: str, repo: str, run_id: int) -> str:
         return "\n\n".join(combined)
 
 
-def file_issue(owner: str, repo: str, title: str, body: str, labels: list, idempotency_key: str) -> dict:
+def find_existing_issue(owner: str, repo: str, run_id: int):
+    """Check whether an issue for this exact CI run has already been filed.
+
+    This IS the idempotency mechanism. GitHub's issue-creation endpoint has
+    no built-in idempotency key — passing one (as the old code did) is
+    silently ignored. Real idempotency here means: tag every issue PatchPilot
+    creates with a run-specific label (ci-run-{run_id}), then search for that
+    label before creating a new one. A re-run or re-trigger of the same
+    workflow run will find the existing issue and skip instead of duplicating.
+
+    TODO verify: 'github.issue.list' is our best guess from `swytchcode
+    list`. Sanity-check the mapping first with:
+        swytchcode exec github.issue.list --input owner=X --input repo=Y --param labels=ci-run-123 --param state=all --explain
+    """
+    result = swytchcode_exec(
+        "github.issue.list",
+        inputs={"owner": owner, "repo": repo},
+        params={"labels": f"ci-run-{run_id}", "state": "all"},
+    )
+    issues = result.get("data", result)
+    if isinstance(issues, dict):
+        issues = issues.get("issues") or issues.get("items") or []
+    return issues[0] if issues else None
+
+
+def file_issue(owner: str, repo: str, title: str, body: str, labels: list, run_id: int) -> dict:
     result = swytchcode_exec(
         "github.issue.create",
         inputs={"owner": owner, "repo": repo},
         body={
             "title": title,
             "body": body,
-            "labels": labels,
-            "idempotency_key": idempotency_key,
+            # The run-specific label is what find_existing_issue() searches
+            # on — this is what actually makes filing idempotent per run.
+            "labels": labels + [f"ci-run-{run_id}"],
         },
     )
     # Same wrapper shape as list_runs: {"data": {...actual issue...}, "request": ..., "status_code": ...}
