@@ -1,12 +1,12 @@
 # PatchPilot
 
-An AI agent that watches a GitHub repo for failed CI runs, diagnoses *why* they failed using Claude, and automatically files a labeled, already-explained GitHub issue — instead of leaving the failure for someone to manually dig through logs for.
+An AI agent that watches a GitHub repo for failed CI runs, diagnoses *why* they failed using an LLM (via Groq), and automatically files a labeled, already-explained GitHub issue — instead of leaving the failure for someone to manually dig through logs for.
 
 ## What it does
 
 1. Checks a repo for recent failed GitHub Actions runs
 2. Pulls the failing run's logs
-3. Sends the logs to Claude, which classifies the failure as `FLAKY_TEST`, `REAL_BUG`, or `ENV_CONFIG` and drafts a root-cause explanation + suggested fix
+3. Sends the logs to Groq (openai/gpt-oss-120b), which classifies the failure as `FLAKY_TEST`, `REAL_BUG`, or `ENV_CONFIG` and drafts a root-cause explanation + suggested fix
 4. Files a GitHub issue with that analysis, and comments on any linked PR
 5. Uses a deterministic idempotency key (hash of run ID + commit SHA) so retried/re-triggered runs never create duplicate issues
 
@@ -19,7 +19,7 @@ python -m venv .venv
 source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 pip install -r requirements.txt
 cp .env.example .env
-# fill in ANTHROPIC_API_KEY, GITHUB_OWNER, GITHUB_REPO
+# fill in GROQ_API_KEY, GITHUB_OWNER, GITHUB_REPO
 python main.py
 ```
 
